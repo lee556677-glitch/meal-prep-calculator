@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🥩 智慧備餐與營養素／醃料黃金比例計算機</title>
+  <style>
+    :root {
+      --bg-main: #FDFBF7;
+      --bg-card: #F5EFE6;
+      --bg-inner: #FFFFFF;
+      --text-main: #4A3B32;
+      --text-muted: #7D6E63;
+      --accent-orange: #E07A5F;
+      --accent-orange-hover: #C86449;
+      --accent-green: #81B29A;
+      --accent-yellow: #F2CC8F;
+      --border-soft: #E6DEC8;
+      --shadow-soft: 0 8px 24px rgba(74, 59, 50, 0.08);
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      background-image: radial-gradient(#E6DEC8 1px, transparent 1px);
+      background-size: 22px 22px;
+      color: var(--text-main);
+      padding: 24px 16px 48px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      background: var(--bg-card);
+      border: 2px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .title-group h1 {
+      font-size: 1.75rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .title-group p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    .badge-tag {
+      background: var(--accent-orange);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    /* Grid Layout */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.08fr 0.92fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 880px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 2px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-soft);
+      margin-bottom: 24px;
+    }
+
+    .card:last-child {
+      margin-bottom: 0;
+    }
+
+    .section-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px dashed var(--border-soft);
+      padding-bottom: 10px;
+    }
+
+    .section-title span.sub {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Meat Selection Buttons */
+    .meat-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .meat-btn {
+      background: var(--bg-inner);
+      border: 2px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      padding: 14px 10px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    .meat-btn:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-orange);
+    }
+
+    .meat-btn.active {
+      background: #FFF5F2;
+      border-color: var(--accent-orange);
+      box-shadow: 0 4px 12px rgba(224, 122, 95, 0.18);
+    }
+
+    .meat-btn .emoji {
+      font-size: 2rem;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .meat-btn .name {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text-main);
+    }
+
+    .meat-btn .macro-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Sliders & Inputs */
+    .control-group {
+      background: var(--bg-inner);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border-soft);
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .value-badge {
+      background: var(--accent-yellow);
+      color: var(--text-main);
+      padding: 2px 10px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent-orange);
+      cursor: pointer;
+      height: 6px;
+    }
+
+    .scale-hints {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Results Box */
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .stat-box {
+      background: var(--bg-inner);
+      border: 2px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      text-align: center;
+    }
+
+    .stat-box.highlight {
+      background: #FFF5F2;
+      border-color: var(--accent-orange);
+    }
+
+    .stat-label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: var(--accent-orange);
+    }
+
+    .stat-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Nutrition Bar */
+    .nutrition-card {
+      background: var(--bg-inner);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-top: 12px;
+      border: 1px solid var(--border-soft);
+    }
+
+    .macro-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar {
+      height: 12px;
+      width: 100%;
+      background: #EAE2D6;
+      border-radius: 999px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .bar-protein {
+      background: var(--accent-orange);
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .bar-fat {
+      background: var(--accent-yellow);
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .tip-banner {
+      margin-top: 12px;
+      background: #EDF6F2;
+      border-left: 4px solid var(--accent-green);
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: #2F5244;
+    }
+
+    /* Marinade Section */
+    .mode-switch {
+      display: flex;
+      background: var(--bg-inner);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+      border: 1px solid var(--border-soft);
+      margin-bottom: 14px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 7px 10px;
+      border-radius: 7px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mode-btn.active {
+      background: var(--accent-orange);
+      color: #fff;
+    }
+
+    .marinade-tabs {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .marinade-tab {
+      background: var(--bg-inner);
+      border: 2px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+    }
+
+    .marinade-tab:hover {
+      border-color: var(--accent-orange);
+    }
+
+    .marinade-tab.active {
+      background: #FFF5F2;
+      border-color: var(--accent-orange);
+      color: var(--accent-orange);
+    }
+
+    .recipe-box {
+      background: var(--bg-inner);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      border: 1px solid var(--border-soft);
+    }
+
+    .ingredient-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border-soft);
+      font-size: 0.92rem;
+    }
+
+    .ingredient-item:last-child {
+      border-bottom: none;
+    }
+
+    .ing-amount {
+      font-weight: 700;
+      color: var(--accent-orange);
+    }
+
+    .action-btn {
+      width: 100%;
+      margin-top: 12px;
+      background: var(--accent-green);
+      color: #fff;
+      border: none;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .action-btn:hover {
+      background: #6B9E85;
+    }
+
+    .action-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* Appliance Tabs */
+    .appliance-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .app-tab {
+      background: var(--bg-inner);
+      border: 2px solid var(--border-soft);
+      border-radius: var(--radius-sm);
+      padding: 10px 6px;
+      text-align: center;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .app-tab.active {
+      background: #FFF5F2;
+      border-color: var(--accent-orange);
+      color: var(--accent-orange);
+    }
+
+    .cooking-detail {
+      background: var(--bg-inner);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      border: 1px solid var(--border-soft);
+    }
+
+    .cook-param-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .param-pill {
+      background: var(--bg-card);
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      text-align: center;
+    }
+
+    .param-pill .label {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .param-pill .val {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    /* Balanced Plate */
+    .plate-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .plate-item {
+      background: var(--bg-inner);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      padding: 12px;
+    }
+
+    .plate-item h4 {
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+      color: var(--text-main);
+    }
+
+    .plate-item .gram {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--accent-green);
+    }
+
+    .plate-item p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Countdown Timer */
+    .timer-display-wrap {
+      background: var(--bg-inner);
+      border: 2px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      text-align: center;
+      position: relative;
+      transition: all 0.3s;
+    }
+
+    .timer-display-wrap.ringing {
+      border-color: var(--accent-orange);
+      background: #FFF0EB;
+      animation: pulse 0.8s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(1); box-shadow: 0 0 0 rgba(224, 122, 95, 0); }
+      to { transform: scale(1.02); box-shadow: 0 0 20px rgba(224, 122, 95, 0.4); }
+    }
+
+    .timer-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .timer-digits {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: 2px;
+      font-variant-numeric: tabular-nums;
+      margin: 4px 0 10px;
+    }
+
+    .timer-progress-bg {
+      height: 8px;
+      background: #EAE2D6;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .timer-progress-fill {
+      height: 100%;
+      width: 100%;
+      background: var(--accent-orange);
+      transition: width 0.5s linear;
+    }
+
+    .preset-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .preset-chip {
+      background: var(--bg-card);
+      border: 1px solid var(--border-soft);
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-main);
+    }
+
+    .preset-chip:hover {
+      border-color: var(--accent-orange);
+      color: var(--accent-orange);
+    }
+
+    .custom-time-inputs {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 14px;
+      font-size: 0.85rem;
+    }
+
+    .custom-time-inputs input {
+      width: 60px;
+      padding: 6px;
+      text-align: center;
+      border: 1px solid var(--border-soft);
+      border-radius: 6px;
+      font-weight: 700;
+    }
+
+    .timer-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    .t-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 0.92rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .t-btn.start {
+      background: var(--accent-orange);
+      color: #fff;
+    }
+
+    .t-btn.pause {
+      background: var(--accent-yellow);
+      color: var(--text-main);
+    }
+
+    .t-btn.reset {
+      background: #E2D9C8;
+      color: var(--text-main);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="title-group">
+        <h1>🥩 智慧備餐與營養素／醃料黃金比例計算機</h1>
+        <p>日系料理手帳 ‧ 原塊肉分切試算、日式醃料精準調配與家電加熱指南</p>
+      </div>
+      <div class="badge-tag">Vibe Coding 互動料理小幫手</div>
+    </header>
+
+    <div class="main-grid">
+      <!-- 左欄：肉品分切與醃料計算 -->
+      <div>
+        <div class="card">
+          <div class="section-title">
+            <span>1️⃣ 選擇肉品與分切營養試算</span>
+            <span class="sub">點擊切換常備肉品</span>
+          </div>
+
+          <div class="meat-selector">
+            <button class="meat-btn active" onclick="selectMeat('steak')" id="btn-steak">
+              <span class="emoji">🥩</span>
+              <div class="name">牛排（嫩肩里肌）</div>
+              <div class="macro-hint">蛋白質 21g / 100g</div>
+            </button>
+            <button class="meat-btn" onclick="selectMeat('chicken')" id="btn-chicken">
+              <span class="emoji">🍗</span>
+              <div class="name">雞胸肉（去皮）</div>
+              <div class="macro-hint">蛋白質 23g / 100g</div>
+            </button>
+            <button class="meat-btn" onclick="selectMeat('salmon')" id="btn-salmon">
+              <span class="emoji">🐟</span>
+              <div class="name">鮭魚（挪威鮭魚）</div>
+              <div class="macro-hint">蛋白質 20g / 100g</div>
+            </button>
+          </div>
+
+          <!-- 滑桿 1：原塊肉總重量 -->
+          <div class="control-group">
+            <div class="control-header">
+              <span>⚖️ 購入原塊肉總重量</span>
+              <span class="value-badge"><span id="val-total-weight">600</span> g</span>
+            </div>
+            <input type="range" id="slider-total-weight" min="150" max="2000" step="10" value="600" oninput="updateCalculations()">
+            <div class="scale-hints">
+              <span>150g（單餐小包裝）</span>
+              <span>1000g（家庭號）</span>
+              <span>2000g（好市多原塊）</span>
+            </div>
+          </div>
+
+          <!-- 滑桿 2：每餐目標蛋白質 -->
+          <div class="control-group">
+            <div class="control-header">
+              <span>💪 每餐目標蛋白質攝取量</span>
+              <span class="value-badge"><span id="val-target-protein">30</span> g / 餐</span>
+            </div>
+            <input type="range" id="slider-target-protein" min="15" max="60" step="1" value="30" oninput="updateCalculations()">
+            <div class="scale-hints">
+              <span>15g（輕食補充）</span>
+              <span>30g（均衡增肌減脂）</span>
+              <span>60g（高強度訓練）</span>
+            </div>
+          </div>
+
+          <!-- 滑桿 3：預計切片厚度 -->
+          <div class="control-group">
+            <div class="control-header">
+              <span>🔪 預計分切厚度（影響電器加熱時間）</span>
+              <span class="value-badge"><span id="val-thickness">12</span> mm</span>
+            </div>
+            <input type="range" id="slider-thickness" min="3" max="30" step="1" value="12" oninput="updateCalculations()">
+            <div class="scale-hints">
+              <span>3mm（燒肉薄片）</span>
+              <span>12mm（厚切肉排）</span>
+              <span>30mm（原塊厚切）</span>
+            </div>
+          </div>
+
+          <!-- 試算結果卡片 -->
+          <div class="result-grid">
+            <div class="stat-box highlight">
+              <div class="stat-label">建議分切份數</div>
+              <div class="stat-value" id="res-portions">4.2 份</div>
+              <div class="stat-sub" id="res-portion-advice">約可備餐 4 餐份</div>
+            </div>
+            <div class="stat-box highlight">
+              <div class="stat-label">每份建議生重</div>
+              <div class="stat-value" id="res-portion-weight">143 g</div>
+              <div class="stat-sub">達標單餐蛋白質需求</div>
+            </div>
+          </div>
+
+          <!-- 單份營養素明細 -->
+          <div class="nutrition-card">
+            <div class="macro-row">
+              <span>🔥 單份熱量：<strong id="res-kcal">255</strong> kcal</span>
+              <span>🥩 蛋白質：<strong id="res-pro">30.0</strong> g</span>
+              <span>💧 脂肪：<strong id="res-fat">14.3</strong> g</span>
+            </div>
+            <div class="progress-bar">
+              <div class="bar-protein" id="bar-pro" style="width: 50%;" title="蛋白質熱量佔比"></div>
+              <div class="bar-fat" id="bar-fat" style="width: 50%;" title="脂肪熱量佔比"></div>
+            </div>
+            <div class="scale-hints" style="margin-top:6px;">
+              <span id="label-pro-pct">🟠 蛋白質熱量佔比 47%</span>
+              <span id="label-fat-pct">🟡 脂肪熱量佔比 53%</span>
+            </div>
+          </div>
+
+          <div class="tip-banner" id="meat-prep-tip">
+            💡 <strong>備餐小撇步：</strong>嫩肩里肌中間有一條明顯細筋，分切時建議「逆紋切」或用刀尖稍微斷筋，口感會軟嫩非常多！
+          </div>
+        </div>
+
+        <!-- 醃料黃金比例計算 -->
+        <div class="card">
+          <div class="section-title">
+            <span>2️⃣ 日式與經典醃料黃金比例</span>
+            <span class="sub">依肉重自動換算 g / ml</span>
+          </div>
+
+          <div class="mode-switch">
+            <button class="mode-btn active" id="mode-single" onclick="setMarinadeMode('single')">計算「單份肉量」醃料</button>
+            <button class="mode-btn" id="mode-total" onclick="setMarinadeMode('total')">計算「整塊總重」醃料</button>
+          </div>
+
+          <div class="marinade-tabs">
+            <button class="marinade-tab active" onclick="selectMarinade('yakiniku')" id="mar-yakiniku">
+              🍶 濃郁日式燒肉醬
+            </button>
+            <button class="marinade-tab" onclick="selectMarinade('apple')" id="mar-apple">
+              🍎 青森蘋果風果香醬
+            </button>
+            <button class="marinade-tab" onclick="selectMarinade('shio')" id="mar-shio">
+              🌾 日式鹽麴軟嫩醃法
+            </button>
+            <button class="marinade-tab" onclick="selectMarinade('garlic')" id="mar-garlic">
+              🧄 經典蒜香醬油米酒
+            </button>
+          </div>
+
+          <div class="recipe-box">
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;" id="marinade-target-desc">
+              目前計算基準：單份肉重 <strong>143 g</strong>
+            </div>
+            <div id="marinade-ingredients-list">
+              <!-- JS 動態生成配方 -->
+            </div>
+            <button class="action-btn" onclick="sendMarinadeTimeToTimer()">
+              ⏱️ 將建議醃製時間（<span id="btn-mar-mins">15</span> 分鐘）帶入計時器
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右欄：電器參數、均衡餐盤與倒數計時器 -->
+      <div>
+        <!-- 烹調電器指南 -->
+        <div class="card">
+          <div class="section-title">
+            <span>3️⃣ 烹調電器最佳溫度與時間</span>
+            <span class="sub">依肉品與切片厚度動態調整</span>
+          </div>
+
+          <div class="appliance-tabs">
+            <button class="app-tab active" onclick="selectAppliance('microwave')" id="app-microwave">
+              📻 微波蒸氣盒
+            </button>
+            <button class="app-tab" onclick="selectAppliance('airfryer')" id="app-airfryer">
+              🌪️ 氣炸鍋
+            </button>
+            <button class="app-tab" onclick="selectAppliance('oven')" id="app-oven">
+              🔥 烤箱
+            </button>
+            <button class="app-tab" onclick="selectAppliance('pan')" id="app-pan">
+              🍳 電磁爐平底鍋
+            </button>
+          </div>
+
+          <div class="cooking-detail">
+            <div class="cook-param-grid">
+              <div class="param-pill">
+                <div class="label">建議火力／溫度</div>
+                <div class="val" id="cook-temp">600W 中高火</div>
+              </div>
+              <div class="param-pill">
+                <div class="label">建議加熱時間</div>
+                <div class="val" id="cook-time">3 分 30 秒</div>
+              </div>
+            </div>
+            <div class="tip-banner" id="cook-step-desc" style="margin-top: 0;">
+              將肉片平鋪於蒸氣微波盒濾網或盤中，蓋上盒蓋微波後，靜置燜 1 分鐘利用餘溫熟透，肉質最鮮嫩不乾柴。
+            </div>
+            <button class="action-btn" style="background: var(--accent-orange);" onclick="sendCookTimeToTimer()">
+              ⏱️ 將電器加熱時間帶入倒數計時器
+            </button>
+          </div>
+        </div>
+
+        <!-- 均衡餐盤搭配建議 -->
+        <div class="card">
+          <div class="section-title">
+            <span>4️⃣ 🥗 均衡餐盤蔬菜與碳水搭配</span>
+            <span class="sub">211 均衡飲食配置</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">
+            根據你設定的單餐 <strong><span id="plate-pro-ref">30</span>g 蛋白質</strong>，建議每餐平均分配以下蔬菜與優質碳水：
+          </p>
+          <div class="plate-box">
+            <div class="plate-item">
+              <h4>🥦 膳食纖維蔬菜量</h4>
+              <div class="gram" id="plate-veggie">180 g</div>
+              <p>推薦搭配：綠花椰菜、鴻喜菇、高麗菜或玉米筍，可放入蒸氣微波盒底層一起加熱。</p>
+            </div>
+            <div class="plate-item">
+              <h4>🍚 優質複合碳水量</h4>
+              <div class="gram" id="plate-carb">150 g</div>
+              <p>推薦搭配：五穀糙米飯、烤地瓜或馬鈴薯（約 0.8 碗飯），維持穩定飽足感與運動表現。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 內建倒數計時器 -->
+        <div class="card">
+          <div class="section-title">
+            <span>5️⃣ ⏱️ 內建醃製／加熱倒數計時器</span>
+            <span class="sub">時間到自動發光與響鈴</span>
+          </div>
+
+          <div class="timer-display-wrap" id="timer-box">
+            <div class="timer-label" id="timer-task-name">當前任務：預設微波加熱倒數</div>
+            <div class="timer-digits" id="timer-digits">03:30</div>
+            <div class="timer-progress-bg">
+              <div class="timer-progress-fill" id="timer-bar"></div>
+            </div>
+
+            <div class="preset-row">
+              <button class="preset-chip" onclick="setQuickTimer(3, 30, '微波盒快速加熱')">📻 微波 3分30秒</button>
+              <button class="preset-chip" onclick="setQuickTimer(10, 0, '氣炸鍋金黃烘烤')">🌪️ 氣炸 10分</button>
+              <button class="preset-chip" onclick="setQuickTimer(15, 0, '肉品黃金醃製靜置')">🍶 醃製 15分</button>
+              <button class="preset-chip" onclick="setQuickTimer(0, 10, '10秒響鈴測試')">🔔 10秒測試</button>
+            </div>
+
+            <div class="custom-time-inputs">
+              <span>自訂時間：</span>
+              <input type="number" id="custom-min" min="0" max="120" value="3"> 分
+              <input type="number" id="custom-sec" min="0" max="59" value="30"> 秒
+              <button class="preset-chip" onclick="applyCustomTime()">設定</button>
+            </div>
+
+            <div class="timer-controls">
+              <button class="t-btn start" id="btn-timer-start" onclick="startTimer()">▶ 開始計時</button>
+              <button class="t-btn pause" onclick="pauseTimer()">⏸ 暫停</button>
+              <button class="t-btn reset" onclick="resetTimer()">🔄 重置</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Designed with Vibe Coding ‧ 智慧備餐與營養素／醃料黃金比例計算機
+    </footer>
+  </div>
+
+  <script>
+    // 1. 肉品資料庫 (每 100g 營養素)
+    const meatDB = {
+      steak: {
+        name: '牛排（嫩肩里肌）',
+        protein: 21.0,
+        fat: 10.0,
+        kcal: 179,
+        tip: '💡 <strong>備餐小撇步：</strong>嫩肩里肌中間有一條明顯細筋，分切時建議「逆紋切」或用刀尖稍微斷筋，口感會軟嫩非常多！'
+      },
+      chicken: {
+        name: '雞胸肉（去皮）',
+        protein: 23.0,
+        fat: 1.5,
+        kcal: 109,
+        tip: '💡 <strong>備餐小撇步：</strong>雞胸肉脂肪極低，分切後可用叉子在表面戳幾個小洞，搭配「日式鹽麴」或一點點橄欖油醃製，微波或氣炸都不乾柴！'
+      },
+      salmon: {
+        name: '鮭魚（挪威鮭魚）',
+        protein: 20.0,
+        fat: 13.5,
+        kcal: 206,
+        tip: '💡 <strong>備餐小撇步：</strong>鮭魚富含 Omega-3 優質魚油，醃製與加熱前請先用廚房紙巾「徹底壓乾表面水分」，就能輕鬆煎烤出無腥味的金黃酥脆魚皮！'
+      }
+    };
+
+    // 2. 醃料資料庫
+    const marinadeDB = {
+      yakiniku: {
+        name: '濃郁日式燒肉醬',
+        mins: 15,
+        getRecipe: (weight) => [
+          { name: '日式燒肉醬（如 Ebara 黃金燒肉醬）', g: (weight * 0.16).toFixed(1), ml: (weight * 0.14).toFixed(1), unit: `約 ${(weight * 0.14 / 15).toFixed(1)} 大匙` },
+          { name: '白芝麻／蔥花（提香選配）', g: (weight * 0.015).toFixed(1), ml: '-', unit: '少許撒面' }
+        ]
+      },
+      apple: {
+        name: '青森蘋果風果香烤肉醬',
+        mins: 20,
+        getRecipe: (weight) => [
+          { name: '日式蘋果果香烤肉醬（如 KNK 源垂）', g: (weight * 0.15).toFixed(1), ml: (weight * 0.13).toFixed(1), unit: `約 ${(weight * 0.13 / 15).toFixed(1)} 大匙` },
+          { name: '現磨粗粒黑胡椒', g: (weight * 0.005).toFixed(1), ml: '-', unit: '均勻抓醃' }
+        ]
+      },
+      shio: {
+        name: '日式鹽麴軟嫩醃法',
+        mins: 25,
+        getRecipe: (weight) => [
+          { name: '液態或膏狀日式鹽麴', g: (weight * 0.10).toFixed(1), ml: (weight * 0.09).toFixed(1), unit: `約 ${(weight * 0.09 / 15).toFixed(1)} 大匙` },
+          { name: '米酒（去腥提鮮）', g: (weight * 0.03).toFixed(1), ml: (weight * 0.03).toFixed(1), unit: `約 ${(weight * 0.03 / 5).toFixed(1)} 小匙` }
+        ]
+      },
+      garlic: {
+        name: '經典蒜香醬油米酒',
+        mins: 15,
+        getRecipe: (weight) => [
+          { name: '薄鹽醬油', g: (weight * 0.08).toFixed(1), ml: (weight * 0.07).toFixed(1), unit: `約 ${(weight * 0.07 / 15).toFixed(1)} 大匙` },
+          { name: '料理米酒', g: (weight * 0.05).toFixed(1), ml: (weight * 0.05).toFixed(1), unit: `約 ${(weight * 0.05 / 5).toFixed(1)} 小匙` },
+          { name: '新鮮蒜末', g: (weight * 0.03).toFixed(1), ml: '-', unit: '抓勻入味' }
+        ]
+      }
+    };
+
+    // 當前狀態變數
+    let currentMeat = 'steak';
+    let currentMarinade = 'yakiniku';
+    let marinadeMode = 'single'; // 'single' or 'total'
+    let currentAppliance = 'microwave';
+
+    let singlePortionWeight = 143;
+    let totalMeatWeight = 600;
+    let recommendedCookSeconds = 210;
+
+    // 切換肉品
+    function selectMeat(meatKey) {
+      currentMeat = meatKey;
+      document.querySelectorAll('.meat-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('btn-' + meatKey).classList.add('active');
+      updateCalculations();
+    }
+
+    // 切換醃料計算基準 (單份 vs 總重)
+    function setMarinadeMode(mode) {
+      marinadeMode = mode;
+      document.getElementById('mode-single').classList.toggle('active', mode === 'single');
+      document.getElementById('mode-total').classList.toggle('active', mode === 'total');
+      updateMarinadeDisplay();
+    }
+
+    // 切換醃料風味
+    function selectMarinade(marKey) {
+      currentMarinade = marKey;
+      document.querySelectorAll('.marinade-tab').forEach(tab => tab.classList.remove('active'));
+      document.getElementById('mar-' + marKey).classList.add('active');
+      updateMarinadeDisplay();
+    }
+
+    // 切換電器
+    function selectAppliance(appKey) {
+      currentAppliance = appKey;
+      document.querySelectorAll('.app-tab').forEach(tab => tab.classList.remove('active'));
+      document.getElementById('app-' + appKey).classList.add('active');
+      updateApplianceDisplay();
+    }
+
+    // 核心計算邏輯
+    function updateCalculations() {
+      totalMeatWeight = parseInt(document.getElementById('slider-total-weight').value, 10);
+      const targetProtein = parseInt(document.getElementById('slider-target-protein').value, 10);
+      const thickness = parseInt(document.getElementById('slider-thickness').value, 10);
+
+      document.getElementById('val-total-weight').textContent = totalMeatWeight;
+      document.getElementById('val-target-protein').textContent = targetProtein;
+      document.getElementById('val-thickness').textContent = thickness;
+
+      const meat = meatDB[currentMeat];
+
+      // 每份所需生重 (g) = (目標蛋白質 / 每100g蛋白質) * 100
+      singlePortionWeight = Math.round((targetProtein / meat.protein) * 100);
+      const portions = (totalMeatWeight / singlePortionWeight).toFixed(1);
+
+      document.getElementById('res-portions').textContent = `${portions} 份`;
+      document.getElementById('res-portion-advice').textContent = `約可分裝 ${Math.max(1, Math.round(portions))} 餐備餐盒`;
+      document.getElementById('res-portion-weight').textContent = `${singlePortionWeight} g`;
+
+      // 計算單份營養素
+      const actualPro = ((singlePortionWeight / 100) * meat.protein).toFixed(1);
+      const actualFat = ((singlePortionWeight / 100) * meat.fat).toFixed(1);
+      const actualKcal = Math.round((singlePortionWeight / 100) * meat.kcal);
+
+      document.getElementById('res-kcal').textContent = actualKcal;
+      document.getElementById('res-pro').textContent = actualPro;
+      document.getElementById('res-fat').textContent = actualFat;
+
+      // 營養素熱量比例條
+      const proCal = actualPro * 4;
+      const fatCal = actualFat * 9;
+      const totalMacroCal = proCal + fatCal;
+      const proPct = Math.round((proCal / totalMacroCal) * 100);
+      const fatPct = 100 - proPct;
+
+      document.getElementById('bar-pro').style.width = `${proPct}%`;
+      document.getElementById('bar-fat').style.width = `${fatPct}%`;
+      document.getElementById('label-pro-pct').textContent = `🟠 蛋白質熱量佔比 ${proPct}%`;
+      document.getElementById('label-fat-pct').textContent = `🟡 脂肪熱量佔比 ${fatPct}%`;
+
+      document.getElementById('meat-prep-tip').innerHTML = meat.tip;
+
+      // 更新均衡餐盤
+      document.getElementById('plate-pro-ref').textContent = targetProtein;
+      document.getElementById('plate-veggie').textContent = `${Math.round(targetProtein * 6)} g`;
+      document.getElementById('plate-carb').textContent = `${Math.round(targetProtein * 5)} g`;
+
+      updateMarinadeDisplay();
+      updateApplianceDisplay();
+    }
+
+    // 更新醃料區塊
+    function updateMarinadeDisplay() {
+      const targetWeight = marinadeMode === 'single' ? singlePortionWeight : totalMeatWeight;
+      const modeText = marinadeMode === 'single' ? '單份肉重' : '整塊總重';
+      document.getElementById('marinade-target-desc').innerHTML =
+        `目前計算基準：${modeText} <strong>${targetWeight} g</strong>（${meatDB[currentMeat].name}）`;
+
+      const mar = marinadeDB[currentMarinade];
+      const items = mar.getRecipe(targetWeight);
+      const container = document.getElementById('marinade-ingredients-list');
+
+      container.innerHTML = items.map(item => `
+        <div class="ingredient-item">
+          <span>${item.name}</span>
+          <span class="ing-amount">
+            ${item.g} g ${item.ml !== '-' ? `(${item.ml} ml)` : ''} ‧ <small>${item.unit}</small>
+          </span>
+        </div>
+      `).join('');
+
+      document.getElementById('btn-mar-mins').textContent = mar.mins;
+    }
+
+    // 更新電器參數區塊 (根據肉品與厚度動態計算)
+    function updateApplianceDisplay() {
+      const thickness = parseInt(document.getElementById('slider-thickness').value, 10);
+      let tempText = '';
+      let seconds = 180;
+      let stepDesc = '';
+
+      if (currentAppliance === 'microwave') {
+        tempText = '600W 中高火';
+        seconds = Math.round(150 + thickness * 5 + (currentMeat === 'chicken' ? 30 : 0));
+        stepDesc = '💡 <strong>專用蒸氣微波盒技巧：</strong>將蔬菜鋪底、肉片平鋪於上層瀝水盤，蓋上盒蓋微波後，<strong>不開蓋靜置燜 1 分鐘</strong>利用餘溫熟透，鮮嫩多汁不乾柴！';
+      } else if (currentAppliance === 'airfryer') {
+        tempText = currentMeat === 'salmon' ? '190°C' : '180°C';
+        seconds = Math.round(360 + thickness * 18 + (currentMeat === 'chicken' ? 60 : 0));
+        stepDesc = '💡 <strong>氣炸鍋技巧：</strong>氣炸至時間一半時拉出翻面一次；若是薄切肉片可噴少許油鎖住水分，起鍋後靜置 2 分鐘再切開。';
+      } else if (currentAppliance === 'oven') {
+        tempText = '200°C（需預熱）';
+        seconds = Math.round(480 + thickness * 22);
+        stepDesc = '💡 <strong>烤箱技巧：</strong>烤箱先以 200°C 預熱 5 分鐘，烤盤鋪烘焙紙放入肉品，表面微焦即可出爐，適合一次準備多份便當。';
+      } else if (currentAppliance === 'pan') {
+        tempText = '中火熱鍋';
+        seconds = Math.round(120 + thickness * 12);
+        stepDesc = '💡 <strong>電磁爐／平底鍋技巧：</strong>熱鍋下少許油，每面各煎約一半時間至金黃上色；若使用含糖量較高的日式燒肉醬，後半段請轉中小火避免焦黑。';
+      }
+
+      recommendedCookSeconds = seconds;
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      document.getElementById('cook-temp').textContent = tempText;
+      document.getElementById('cook-time').textContent = secs > 0 ? `${mins} 分 ${secs} 秒` : `${mins} 分鐘`;
+      document.getElementById('cook-step-desc').innerHTML = stepDesc;
+    }
+
+    // ================= 倒數計時器邏輯 =================
+    let totalTimerSeconds = 210;
+    let remainingSeconds = 210;
+    let timerInterval = null;
+
+    function formatTime(sec) {
+      const m = String(Math.floor(sec / 60)).padStart(2, '0');
+      const s = String(sec % 60).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function renderTimer() {
+      document.getElementById('timer-digits').textContent = formatTime(remainingSeconds);
+      const pct = totalTimerSeconds > 0 ? (remainingSeconds / totalTimerSeconds) * 100 : 0;
+      document.getElementById('timer-bar').style.width = `${pct}%`;
+    }
+
+    function setQuickTimer(mins, secs, taskLabel) {
+      pauseTimer();
+      document.getElementById('timer-box').classList.remove('ringing');
+      totalTimerSeconds = mins * 60 + secs;
+      remainingSeconds = totalTimerSeconds;
+      document.getElementById('custom-min').value = mins;
+      document.getElementById('custom-sec').value = secs;
+      document.getElementById('timer-task-name').textContent = `當前任務：${taskLabel}`;
+      renderTimer();
+    }
+
+    function applyCustomTime() {
+      const m = Math.max(0, parseInt(document.getElementById('custom-min').value, 10) || 0);
+      const s = Math.max(0, parseInt(document.getElementById('custom-sec').value, 10) || 0);
+      if (m === 0 && s === 0) return;
+      setQuickTimer(m, s, '自訂備餐倒數');
+    }
+
+    function sendMarinadeTimeToTimer() {
+      const mar = marinadeDB[currentMarinade];
+      setQuickTimer(mar.mins, 0, `${mar.name}（醃製靜置）`);
+      document.getElementById('timer-box').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function sendCookTimeToTimer() {
+      const m = Math.floor(recommendedCookSeconds / 60);
+      const s = recommendedCookSeconds % 60;
+      const appNames = {
+        microwave: '蒸氣微波盒加熱',
+        airfryer: '氣炸鍋加熱',
+        oven: '烤箱烘烤',
+        pan: '電磁爐平底鍋香煎'
+      };
+      setQuickTimer(m, s, `${meatDB[currentMeat].name} - ${appNames[currentAppliance]}`);
+      document.getElementById('timer-box').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function startTimer() {
+      if (timerInterval) return;
+      document.getElementById('timer-box').classList.remove('ringing');
+      if (remainingSeconds <= 0) {
+        remainingSeconds = totalTimerSeconds;
+      }
+      document.getElementById('btn-timer-start').textContent = '⏳ 計時進行中...';
+      timerInterval = setInterval(() => {
+        if (remainingSeconds > 0) {
+          remainingSeconds--;
+          renderTimer();
+        } else {
+          pauseTimer();
+          triggerAlarm();
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      document.getElementById('btn-timer-start').textContent = '▶ 開始計時';
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      document.getElementById('timer-box').classList.remove('ringing');
+      remainingSeconds = totalTimerSeconds;
+      renderTimer();
+    }
+
+    // 使用 Web Audio API 產生清脆雙響提示鈴聲（無須外部音訊檔）
+    function triggerAlarm() {
+      document.getElementById('timer-box').classList.add('ringing');
+      document.getElementById('timer-task-name').textContent = '🎉 時間到囉！料理／醃製完成！';
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const playBeep = (freq, startTime, duration) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, startTime);
+          gain.gain.setValueAtTime(0.25, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + duration);
+        };
+        const now = ctx.currentTime;
+        playBeep(880, now, 0.2);
+        playBeep(1174.66, now + 0.22, 0.35);
+        playBeep(880, now + 0.7, 0.2);
+        playBeep(1174.66, now + 0.92, 0.45);
+      } catch (e) {
+        console.log('Audio API not supported');
+      }
+    }
+
+    // 初始化畫面
+    updateCalculations();
+  </script>
+</body>
+</html>
